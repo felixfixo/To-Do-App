@@ -15,10 +15,7 @@ public class ToDoRepository {
     private LiveData<List<ToDo>> activeToDos;
     private LiveData<List<ToDo>> completedToDos;
 
-    // Note that in order to unit test the WordRepository, you have to remove the Application
-    // dependency. This adds complexity and much more code, and this sample is not about testing.
-    // See the BasicSample in the android-architecture-components repository at
-    // https://github.com/googlesamples
+
     public ToDoRepository(Application application) {
         ToDoRoomDatabase db = ToDoRoomDatabase.getDatabase(application);
         toDoDao = db.toDoDao();
@@ -26,7 +23,6 @@ public class ToDoRepository {
         completedToDos = toDoDao.getCompletedToDos();
     }
 
-    // Room executes all queries on a separate thread.
     // Observed LiveData will notify the observer when the data has changed.
     public LiveData<List<ToDo>> getActiveToDos() {
         return activeToDos;
@@ -35,34 +31,38 @@ public class ToDoRepository {
         return completedToDos;
     }
 
-    // You must call this on a non-UI thread or your app will throw an exception. Room ensures
-    // that you're not doing any long running operations on the main thread, blocking the UI.
+    /**
+     * Method for saving new task in the database
+     * @param toDo The task to be saved
+     */
     public void insert(ToDo toDo) {
+        // Save the task in the background thread
         ToDoRoomDatabase.databaseWriteExecutor.execute(() -> {
             toDoDao.insertToDo(toDo);
         });
     }
 
+    /**
+     * Method for deleting a task
+     * @param toDo The task to be deleted
+     */
     public void deleteTodo(ToDo toDo) {
+        // Delete the task in the background thread
         ToDoRoomDatabase.databaseWriteExecutor.execute(() -> {
             toDoDao.deleteToDo(toDo);
         });
     }
 
+    /**
+     * Method for updating a task
+     * @param toDo The task to be saved
+     */
     public void updateTodo(ToDo toDo) {
+        // Update on the background thread
         ToDoRoomDatabase.databaseWriteExecutor.execute(() -> {
             toDoDao.updateToDo(toDo);
         });
     }
 
-    /**
-     * Method that updates a to-do status to 'Completed'
-     * @param toDo The task to be updated
-     */
-//    public void completeTodo(ToDo toDo) {
-//        ToDoRoomDatabase.databaseWriteExecutor.execute(() -> {
-//            toDoDao.completeToDo(toDo);
-//        });
-//    }
 
 }

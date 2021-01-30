@@ -17,12 +17,13 @@ import com.fixo.todo.adapters.ToDoListAdapter;
 
 public class ActiveToDosFragment extends Fragment {
 
+    // Member variables
     private ToDoViewModel toDoViewModel;
     public static final int NEW_TO_DO_ACTIVITY_REQUEST_CODE = 1;
     ToDoListAdapter toDoListAdapterAdapter;
 
+    // Required empty public constructor
     public ActiveToDosFragment(ToDoViewModel toDoViewModel) {
-        // Required empty public constructor
         this.toDoViewModel = toDoViewModel;
     }
 
@@ -34,8 +35,8 @@ public class ActiveToDosFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_active_to_dos, container, false);
         TextView noTasksTextView = view.findViewById(R.id.noTasksTextView);
 
+        // Get active tasks using view model
         toDoViewModel.getActiveToDos().observe(this, toDos -> {
-
 
             toDoListAdapterAdapter = new ToDoListAdapter(getContext(), getActivity(), toDos, toDoViewModel);
             RecyclerView recyclerView = view.findViewById(R.id.recyclerview);
@@ -45,6 +46,7 @@ public class ActiveToDosFragment extends Fragment {
 
             // Set the adapter to the recycler view
             recyclerView.setAdapter(toDoListAdapterAdapter);
+            // set layout manager
             recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         });

@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 @Database(entities = {ToDo.class}, version = 1, exportSchema = false)
 public abstract class ToDoRoomDatabase extends RoomDatabase {
 
+    // Member variables
     public abstract ToDoDao toDoDao();
 
     private static volatile ToDoRoomDatabase INSTANCE;
@@ -22,6 +23,7 @@ public abstract class ToDoRoomDatabase extends RoomDatabase {
     public static final ExecutorService databaseWriteExecutor =
             Executors.newFixedThreadPool(NUMBER_OF_THREADS);
 
+    // Method for executing database operations on the background thread
     public static ToDoRoomDatabase getDatabase(final Context context) {
         if (INSTANCE == null) {
             synchronized (ToDoRoomDatabase.class) {

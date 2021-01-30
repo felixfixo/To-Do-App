@@ -33,13 +33,14 @@ public class CompletedToDosFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_completed_to_dos, container, false);
 
+        // Get complete tasks using view model
         toDoViewModel.getCompletedToDos().observe(this, toDos -> {
-
             toDoListAdapterAdapter = new ToDoListAdapter(getContext(), getActivity(), toDos, toDoViewModel);
             RecyclerView recyclerView = view.findViewById(R.id.recyclerview);
-            //final ToDoListAdapter adapter = new ToDoListAdapter(new ToDoListAdapter.WordDiff());
 
+            // set adapter
             recyclerView.setAdapter(toDoListAdapterAdapter);
+            // Set layout manager
             recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         });

@@ -9,16 +9,12 @@ import androidx.lifecycle.ViewModelProvider;
 public class ToDoViewModelFactory implements ViewModelProvider.Factory {
     private Application mApplication;
 
-
-
+    // Factory constructor
     public ToDoViewModelFactory(Application application) {
         mApplication = application;
 
     }
-//    @Override
-//    public <T extends ViewModel> T create(Class<T> modelClass) {
-//        return (T) new BookViewModel(mApplication);
-//    }
+
     @NonNull
     @Override
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {

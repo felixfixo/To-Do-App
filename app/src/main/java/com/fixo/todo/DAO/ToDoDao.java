@@ -15,23 +15,24 @@ import java.util.List;
 
 @Dao
 public interface ToDoDao {
-    String activeStatus = ConstantValues.ACTIVE_STATUS;
-
+    // Method for inserting a task into the database
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     void insertToDo(ToDo toDo);
 
+    // Method for deleting task from the database
     @Delete
     void deleteToDo(ToDo todo);
 
+    // Method for updating a task
     @Update
     void updateToDo(ToDo toDo);
 
-//    @Query("UPDATE to_do_table SET status='Completed' WHERE status='Active' ")
-//    void completeToDo(ToDo toDo);
 
+    // Method for getting active tasks
     @Query("SELECT * FROM to_do_table WHERE status='Active' ORDER BY id DESC")
     LiveData<List<ToDo>> getActiveToDos();
 
+    // Method for getting complete tasks
     @Query("SELECT * FROM to_do_table WHERE status='Completed' ORDER BY id DESC")
     LiveData<List<ToDo>> getCompletedToDos();
 

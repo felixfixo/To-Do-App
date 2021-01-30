@@ -12,11 +12,13 @@ import java.util.List;
 
 public class ToDoViewModel extends AndroidViewModel {
 
+    // Member variables
     private ToDoRepository toDoRepository;
 
     private final LiveData<List<ToDo>> activeToDos;
     private final LiveData<List<ToDo>> completedToDos;
 
+    // Constructor
     public ToDoViewModel (Application application) {
         super(application);
         toDoRepository = new ToDoRepository(application);
@@ -26,11 +28,22 @@ public class ToDoViewModel extends AndroidViewModel {
 
     public LiveData<List<ToDo>> getActiveToDos() { return activeToDos; }
 
-    //get completed to dos
+    /**
+     * Method for getting compete tasks
+     * @return Completed tasks
+     */
     public LiveData<List<ToDo>> getCompletedToDos() { return completedToDos; }
 
+    /**
+     * Method for saving new task
+     * @param toDo The task to be saved
+     */
     public void insert(ToDo toDo) { toDoRepository.insert(toDo); }
 
+    /**
+     * Method for deleting a task
+     * @param toDo The task to be deleted
+     */
     public void deleteTodo(ToDo toDo) { toDoRepository.deleteTodo(toDo); }
 
     /**
@@ -39,10 +52,5 @@ public class ToDoViewModel extends AndroidViewModel {
      */
     public void updateTodo(ToDo toDo) { toDoRepository.updateTodo(toDo); }
 
-    /**
-     * Method to update a to-do status to 'Completed'
-     * @param toDo The task to be updated
-     */
-//    public void completeTodo(ToDo toDo) { toDoRepository.completeTodo(toDo); }
 
 }

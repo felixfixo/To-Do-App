@@ -54,7 +54,6 @@ public class ToDo {
     }
 
     // Setter methods
-
     public void setId(int id) {
         this.id = id;
     }
