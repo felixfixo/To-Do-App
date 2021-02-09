@@ -14,6 +14,7 @@ import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -32,7 +33,9 @@ import com.fixo.todo.models.ToDo;
 import com.fixo.todo.utils.ConstantValues;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
@@ -54,7 +57,9 @@ public class MainActivity extends AppCompatActivity {
     public static final int NEW_TO_DO_ACTIVITY_REQUEST_CODE = 1;
     private static final int MY_PERMISSIONS_REQUEST_LOCATION = 22;
     private FusedLocationProviderClient fusedLocationClient;
-    private TextView tempTextView, rainfallTextView,speedTextView, kmTextView, fahrenheitTextView;
+    private TextView tempTextView, rainfallTextView, speedTextView, kmTextView, fahrenheitTextView;
+    private LocationCallback locationCallback;
+    private  LocationRequest locationRequest;
 
 
     @Override
@@ -77,6 +82,8 @@ public class MainActivity extends AppCompatActivity {
         // Call method to get current location of the device
         getLocation();
 
+        initLocationCallBack();
+
         // Initialize the view model class
         toDoViewModel = new ViewModelProvider(this, new ToDoViewModelFactory
                 (this.getApplication())).get(ToDoViewModel.class);
@@ -97,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Method that set tabs information
      */
-    private void setTabsInfo(){
+    private void setTabsInfo() {
         // Set the tabs
         TabLayoutAdapter adapter = new TabLayoutAdapter(getSupportFragmentManager(), 1);
         ViewPager viewPager = findViewById(R.id.pager);
@@ -135,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
      * Method for tweaking location settings
      */
     protected void createLocationRequest() {
-        LocationRequest locationRequest = LocationRequest.create();
+        locationRequest = LocationRequest.create();
         locationRequest.setInterval(10000);
         locationRequest.setFastestInterval(5000);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -258,46 +265,94 @@ public class MainActivity extends AppCompatActivity {
                 .addOnSuccessListener(this, new OnSuccessListener<Location>() {
                     @Override
                     public void onSuccess(Location location) {
-                        // Got last known location. In some rare situations this can be null.
-                        if (location != null) {
-                            // Logic to handle location object
-                            String latitude = String.valueOf(location.getLatitude());
-                            String longitude = String.valueOf(location.getLongitude());
-
-                            // Creating Volley string request that gets weather info. from API
-                            RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
-                            String url = ConstantValues.WEATHER_BASE_URL + "lat=" + latitude +"&lon=" + longitude +"&appid="+ ConstantValues.API_KEY;
-
-                            // Request a string response from the provided URL.
-                            StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                                    response -> {
-                                        Log.d("response", response);
-                                        // Call method to process response
-                                        processResponse(response);
-
-                                    }, error ->{
-                                Log.d("Error Response", error.getMessage());
-                                Toast.makeText(MainActivity.this,
-                                        R.string.weather_updates_error,
-                                        Toast.LENGTH_LONG).show();
-                                fahrenheitTextView.setVisibility(View.GONE);
-                                kmTextView.setVisibility(View.GONE);
-                            }
-                            );
-
-                            // Add the request to the RequestQueue.
-                            queue.add(stringRequest);
-
-
-                        }
-                        else{
-                            Toast.makeText(MainActivity.this,
-                                    R.string.location_error_msg, Toast.LENGTH_SHORT).show();
-                            fahrenheitTextView.setVisibility(View.GONE);
-                            kmTextView.setVisibility(View.GONE);
-                        }
+                        // Call method to get weather updates
+                        getWeatherUpdates(location);
                     }
                 });
+    }
+
+    /**
+     * Method that call weather API to get updates
+     * @param location the current location of the device
+     */
+    private void getWeatherUpdates(Location location){
+        if (location != null) {
+            // Logic to handle location object
+            String latitude = String.valueOf(location.getLatitude());
+            String longitude = String.valueOf(location.getLongitude());
+
+            // Creating Volley string request that gets weather info. from API
+            RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
+            String url = ConstantValues.WEATHER_BASE_URL + "lat=" + latitude + "&lon=" + longitude + "&appid=" + ConstantValues.API_KEY;
+
+            // Request a string response from the provided URL.
+            StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                    response -> {
+                        Log.d("response", response);
+                        // Call method to process response
+                        processResponse(response);
+
+                    }, error -> {
+                Log.d("Error Response", error.getMessage());
+                Toast.makeText(MainActivity.this,
+                        R.string.weather_updates_error,
+                        Toast.LENGTH_LONG).show();
+                fahrenheitTextView.setVisibility(View.GONE);
+                kmTextView.setVisibility(View.GONE);
+            }
+            );
+
+            // Add the request to the RequestQueue.
+            queue.add(stringRequest);
+
+
+        } else {
+            startLocationUpdates();
+            Toast.makeText(MainActivity.this,
+                    R.string.location_error_msg, Toast.LENGTH_SHORT).show();
+            fahrenheitTextView.setVisibility(View.GONE);
+            kmTextView.setVisibility(View.GONE);
+        }
+    }
+
+
+    /**
+     * Method that checks for location updates if last know location is null
+     */
+    private void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        // request for location updates
+        fusedLocationClient.requestLocationUpdates(locationRequest,
+                locationCallback,
+                Looper.getMainLooper());
+    }
+
+    /**
+     * Location updates call back method
+     */
+    private void initLocationCallBack(){
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    return;
+                }
+                for (Location location : locationResult.getLocations()) {
+                    // Get weather updates
+                    getWeatherUpdates(location);
+                }
+            }
+        };
+
     }
 
 
